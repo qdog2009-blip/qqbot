@@ -5,7 +5,7 @@
 set -e
 
 OPENCLAW_DIR="$HOME/.openclaw"
-CONFIG_FILE="$OPENCLAW_DIR/config.json"
+CONFIG_FILE="$OPENCLAW_DIR/openclaw.json"
 EXTENSION_DIR="$OPENCLAW_DIR/extensions/qqbot"
 
 echo "=== QQBot 插件升级脚本 ==="
