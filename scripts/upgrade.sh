@@ -6,29 +6,24 @@ set -e
 
 OPENCLAW_DIR="$HOME/.openclaw"
 OPENCLAW_CONFIG="$OPENCLAW_DIR/openclaw.json"
-CLAWDBOT_DIR="$HOME/.clawdbot"
-CLAWDBOT_CONFIG="$CLAWDBOT_DIR/clawdbot.json"
 EXTENSION_DIR="$OPENCLAW_DIR/extensions/qqbot"
 PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "=== QQBot 插件升级脚本 ==="
 echo ""
 
-# 0. 从旧配置文件读取 AppID 和 AppSecret
+# 0. 从配置文件中读取 AppID 和 AppSecret
 APP_ID=""
 CLIENT_SECRET=""
-if [ -f "$CLAWDBOT_CONFIG" ]; then
-  echo "从旧配置文件读取配置..."
+if [ -f "$OPENCLAW_CONFIG" ]; then
+  echo "从配置文件中读取 qqbot 凭证..."
   CREDENTIALS=$(node -e "
     const fs = require('fs');
-    const config = JSON.parse(fs.readFileSync('$CLAWDBOT_CONFIG', 'utf8'));
+    const config = JSON.parse(fs.readFileSync('$OPENCLAW_CONFIG', 'utf8'));
     if (config.channels && config.channels.qqbot) {
       const qqbot = config.channels.qqbot;
-      if (qqbot.accounts && qqbot.accounts.length > 0) {
-        const account = qqbot.accounts[0];
-        if (account.appId && account.clientSecret) {
-          console.log(JSON.stringify({appId: account.appId, clientSecret: account.clientSecret}));
-        }
+      if (qqbot.appId && qqbot.clientSecret) {
+        console.log(JSON.stringify({appId: qqbot.appId, clientSecret: qqbot.clientSecret}));
       }
     }
   " 2>/dev/null || echo "")
@@ -39,10 +34,10 @@ if [ -f "$CLAWDBOT_CONFIG" ]; then
     echo "  - AppID: ${APP_ID:0:10}..."
     echo "  - ClientSecret: ${CLIENT_SECRET:0:4}..."
   else
-    echo "  未在旧配置中找到 qqbot 凭证"
+    echo "  未在配置中找到 qqbot 凭证"
   fi
 else
-  echo "  未找到旧配置文件: $CLAWDBOT_CONFIG"
+  echo "  未找到配置文件: $OPENCLAW_CONFIG"
 fi
 echo ""
 
@@ -55,14 +50,19 @@ else
 fi
 echo ""
 
-# 2. 清理配置文件中的 qqbot 相关字段
+# 2. 清理配置文件中的 qqbot 相关字段（保留 appId 和 clientSecret）
 if [ -f "$OPENCLAW_CONFIG" ]; then
   echo "清理配置文件中的 qqbot 字段..."
   node -e "
     const fs = require('fs');
     const config = JSON.parse(fs.readFileSync('$OPENCLAW_CONFIG', 'utf8'));
 
+    // 保留 appId 和 clientSecret
+    let appId = '';
+    let clientSecret = '';
     if (config.channels && config.channels.qqbot) {
+      appId = config.channels.qqbot.appId || '';
+      clientSecret = config.channels.qqbot.clientSecret || '';
       delete config.channels.qqbot;
       console.log('  - 已删除 channels.qqbot');
     }
@@ -77,6 +77,12 @@ if [ -f "$OPENCLAW_CONFIG" ]; then
 
     fs.writeFileSync('$OPENCLAW_CONFIG', JSON.stringify(config, null, 2));
     console.log('配置文件已更新');
+
+    // 输出保留的凭证
+    if (appId || clientSecret) {
+      console.log('  - 保留 appId: ' + appId.substring(0, 10) + '...');
+      console.log('  - 保留 clientSecret: ' + clientSecret.substring(0, 4) + '...');
+    }
   "
 else
   echo "未找到配置文件: $OPENCLAW_CONFIG"
