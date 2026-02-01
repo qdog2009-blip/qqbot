@@ -390,7 +390,7 @@ export async function startGateway(ctx: GatewayContext): Promise<void> {
                   // 工具调用错误，不要重复发送
                   log?.error(`[qqbot:${account.accountId}] Tool call error, skip user notification: ${errMsg.slice(0, 100)}`);
                 } else if (errMsg.includes("timeout") || errMsg.includes("timeout")) {
-                  await sendErrorMessage("[ClawdBot] 处理消息超时，请稍后重试");
+                  await sendErrorMessage("[ClawdBot] 还正在处理中，需要点时间，一会处理好我会通知您。");
                 } else {
                   await sendErrorMessage(`[ClawdBot] 处理消息时出错: ${errMsg.slice(0, 100)}`);
                 }
@@ -410,7 +410,7 @@ export async function startGateway(ctx: GatewayContext): Promise<void> {
               const errMsg = String(err);
               if (errMsg.includes("timeout") || errMsg.includes("Timeout")) {
                 log?.error(`[qqbot:${account.accountId}] Response timeout`);
-                await sendErrorMessage("[ClawdBot] 处理消息超时，请稍后重试");
+                await sendErrorMessage("[ClawdBot] 还正在处理中，需要点时间，一会处理好我会通知您。");
               } else {
                 log?.error(`[qqbot:${account.accountId}] Dispatch failed: ${errMsg}`);
                 await sendErrorMessage(`[ClawdBot] 处理消息失败: ${errMsg.slice(0, 100)}`);
