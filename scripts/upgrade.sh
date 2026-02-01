@@ -92,7 +92,11 @@ echo ""
 # 3. 安装插件
 echo "安装插件到 OpenClaw..."
 cd "$PLUGIN_DIR"
-openclaw plugins install .
+# 复制文件到扩展目录
+rm -rf "$EXTENSION_DIR"
+mkdir -p "$EXTENSION_DIR"
+cp -r "$PLUGIN_DIR"/* "$EXTENSION_DIR/"
+echo "已复制插件文件到 $EXTENSION_DIR"
 echo ""
 
 # 4. 配置 qqbot 通道
