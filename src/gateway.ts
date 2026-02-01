@@ -346,11 +346,6 @@ export async function startGateway(ctx: GatewayContext): Promise<void> {
                 // 把所有可能被识别为 URL 的点替换为下划线
                 // 匹配：字母/数字.字母/数字 的模式
                 replyText = replyText.replace(/([a-zA-Z0-9])\.([a-zA-Z0-9])/g, "$1_$2");
-                
-                const hasReplacement = replyText !== originalText;
-                if (hasReplacement) {
-                  replyText += "\n\n（由于平台限制，回复中的部分符号已被替换）";
-                }
 
                 try {
                   await sendWithTokenRetry(async (token) => {
