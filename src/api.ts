@@ -209,3 +209,85 @@ export async function sendProactiveGroupMessage(
     msg_type: 0,
   });
 }
+
+/**
+ * 上传图片获取 UUID
+ * QQ Bot 需要先上传图片，返回 uuid 后再发送消息
+ */
+export async function uploadImage(
+  accessToken: string,
+  imageData: string
+): Promise<string> {
+  // 支持 base64 或 URL
+  let payload: { url?: string; file_data?: string };
+  
+  if (imageData.startsWith("http")) {
+    payload = { url: imageData };
+  } else if (imageData.startsWith("data:")) {
+    payload = { file_data: imageData.split(",")[1] };
+  } else {
+    // 假设是 base64
+    payload = { file_data: imageData };
+  }
+
+  const data = await apiRequest<{ id: string }>(
+    accessToken,
+    "POST",
+    "/v2/assets",
+    payload
+  );
+  
+  return data.id;
+}
+
+/**
+ * 发送 C2C 图片消息
+ */
+export async function sendC2CImageMessage(
+  accessToken: string,
+  openid: string,
+  imageUuid: string
+): Promise<{ id: string; timestamp: number }> {
+  const msgSeq = 1;
+  return apiRequest(accessToken, "POST", `/v2/users/${openid}/messages`, {
+    msg_type: 7, // 图片消息类型
+    msg_seq: msgSeq,
+    content: JSON.stringify({
+      1: { 1: imageUuid },
+    }),
+  });
+}
+
+/**
+ * 发送频道图片消息
+ */
+export async function sendChannelImageMessage(
+  accessToken: string,
+  channelId: string,
+  imageUuid: string
+): Promise<{ id: string; timestamp: string }> {
+  return apiRequest(accessToken, "POST", `/channels/${channelId}/messages`, {
+    msg_id: "",
+    content: JSON.stringify([
+      { type: 7, data: { file: imageUuid } },
+    ]),
+  });
+}
+
+/**
+ * 发送群聊图片消息
+ */
+export async function sendGroupImageMessage(
+  accessToken: string,
+  groupOpenid: string,
+  imageUuid: string
+): Promise<{ id: string; timestamp: string }> {
+  const msgSeq = 1;
+  return apiRequest(accessToken, "POST", `/v2/groups/${groupOpenid}/messages`, {
+    msg_type: 7, // 图片消息类型
+    msg_seq: msgSeq,
+    content: JSON.stringify({
+      1: { 1: imageUuid },
+    }),
+  });
+}

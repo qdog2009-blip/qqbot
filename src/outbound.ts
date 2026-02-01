@@ -6,11 +6,23 @@ import {
   sendGroupMessage,
   sendProactiveC2CMessage,
   sendProactiveGroupMessage,
+  uploadImage,
+  sendC2CImageMessage,
+  sendChannelImageMessage,
+  sendGroupImageMessage,
 } from "./api.js";
 
 export interface OutboundContext {
   to: string;
   text: string;
+  accountId?: string | null;
+  replyToId?: string | null;
+  account: ResolvedQQBotAccount;
+}
+
+export interface ImageContext {
+  to: string;
+  image: string; // URL or base64
   accountId?: string | null;
   replyToId?: string | null;
   account: ResolvedQQBotAccount;
@@ -105,6 +117,39 @@ export async function sendProactiveMessage(
     } else {
       // 频道暂不支持主动消息，使用普通发送
       const result = await sendChannelMessage(accessToken, target.id, text);
+      return { channel: "qqbot", messageId: result.id, timestamp: result.timestamp };
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { channel: "qqbot", error: message };
+  }
+}
+
+/**
+ * 发送图片消息
+ */
+export async function sendImage(ctx: ImageContext): Promise<OutboundResult> {
+  const { to, image, account } = ctx;
+
+  if (!account.appId || !account.clientSecret) {
+    return { channel: "qqbot", error: "QQBot not configured (missing appId or clientSecret)" };
+  }
+
+  try {
+    const accessToken = await getAccessToken(account.appId, account.clientSecret);
+    const target = parseTarget(to);
+
+    // 先上传图片获取 UUID
+    const imageUuid = await uploadImage(accessToken, image);
+
+    if (target.type === "c2c") {
+      const result = await sendC2CImageMessage(accessToken, target.id, imageUuid);
+      return { channel: "qqbot", messageId: result.id, timestamp: result.timestamp };
+    } else if (target.type === "group") {
+      const result = await sendGroupImageMessage(accessToken, target.id, imageUuid);
+      return { channel: "qqbot", messageId: result.id, timestamp: result.timestamp };
+    } else {
+      const result = await sendChannelImageMessage(accessToken, target.id, imageUuid);
       return { channel: "qqbot", messageId: result.id, timestamp: result.timestamp };
     }
   } catch (err) {

@@ -19,7 +19,7 @@ export const qqbotPlugin: ChannelPlugin<ResolvedQQBotAccount> = {
   },
   capabilities: {
     chatTypes: ["direct", "group"],
-    media: false,
+    media: true,
     reactions: false,
     threads: false,
   },
@@ -72,6 +72,15 @@ export const qqbotPlugin: ChannelPlugin<ResolvedQQBotAccount> = {
     sendText: async ({ to, text, accountId, replyToId, cfg }) => {
       const account = resolveQQBotAccount(cfg, accountId);
       const result = await sendText({ to, text, accountId, replyToId, account });
+      return {
+        channel: "qqbot",
+        messageId: result.messageId,
+        error: result.error ? new Error(result.error) : undefined,
+      };
+    },
+    sendImage: async ({ to, image, accountId, cfg }) => {
+      const account = resolveQQBotAccount(cfg, accountId);
+      const result = await sendImage({ to, image, accountId, account });
       return {
         channel: "qqbot",
         messageId: result.messageId,
