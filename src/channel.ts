@@ -78,9 +78,9 @@ export const qqbotPlugin: ChannelPlugin<ResolvedQQBotAccount> = {
         error: result.error ? new Error(result.error) : undefined,
       };
     },
-    sendImage: async ({ to, image, accountId, cfg }) => {
+    sendMedia: async ({ to, text, mediaUrl, accountId, cfg }) => {
       const account = resolveQQBotAccount(cfg, accountId);
-      const result = await sendImage({ to, image, accountId, account });
+      const result = await sendImage({ to, image: mediaUrl || text, accountId, account });
       return {
         channel: "qqbot",
         messageId: result.messageId,
